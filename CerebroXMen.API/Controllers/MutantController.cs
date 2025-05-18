@@ -11,16 +11,10 @@ namespace CerebroXMen.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MutantController : ControllerBase
+public class MutantController(IMutantDetectorService detector, IDnaRepository repository) : ControllerBase
 {
-    private readonly IMutantDetectorService _detector;
-    private readonly IDnaRepository _repository;
-
-    public MutantController(IMutantDetectorService detector, IDnaRepository repository)
-    {
-        _detector = detector;
-        _repository = repository;
-    }
+    private readonly IMutantDetectorService _detector = detector;
+    private readonly IDnaRepository _repository = repository;
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] DnaRequest request)
@@ -39,11 +33,44 @@ public class MutantController : ControllerBase
         var dna = new DnaSequence
         {
             Sequence = request.Dna,
-            IsMutant = isMutant
+            IsMutant = isMutant,
+            FechaAlta = DateTime.Now
         };
 
         await _repository.AddAsync(dna);
 
         return isMutant ? Ok() : Forbid(); // 403 si no es mutante
+    }
+
+    [HttpGet("stats")]
+    public async Task<IActionResult> GetStats()
+    {
+        int mutants = await _repository.CountMutantsAsync();
+        int humans = await _repository.CountHumansAsync();
+
+        double ratio = humans == 0 ? 0 : (double)mutants / humans;
+
+        var stats = new StatsResponse
+        {
+            CountMutantDna = mutants,
+            CountHumanDna = humans,
+            Ratio = Math.Round(ratio, 2)
+        };
+
+        return Ok(stats);
+    }
+
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAll()
+    {
+        var allDna = await _repository.GetAllAsync();
+        return Ok(allDna);
+    }
+
+    [HttpGet("allstring")]
+    public IActionResult GetAllstring()
+    {
+        var allDna = _repository.GetAllJustStringAsync();
+        return Ok(allDna);
     }
 }

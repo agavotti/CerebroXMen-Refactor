@@ -8,5 +8,7 @@ namespace CerebroXMen.Domain.Repositories
         Task AddAsync(DnaSequence dnaSequence);
         Task<int> CountMutantsAsync();
         Task<int> CountHumansAsync();
+        Task<IEnumerable<DnaSequence>> GetAllAsync();
+        string GetAllJustStringAsync();
     }
 }

@@ -30,4 +30,12 @@ public class DnaRepository(CerebroDbContext context) : IDnaRepository
     {
         return await _context.DnaSequences.CountAsync(d => !d.IsMutant);
     }
+    public async Task<IEnumerable<DnaSequence>> GetAllAsync()
+    {
+        return await _context.DnaSequences.ToListAsync();
+    }
+    public string GetAllJustStringAsync()
+    {
+        return "HolaMundo";
+    }
 }
